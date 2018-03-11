@@ -11,5 +11,8 @@
     "url": "\"\""
   },
   "author": "SOS1718-13",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.16.2"
+  }
 }
