@@ -53,8 +53,10 @@ var dbF_One = new DataStore({
     autoload: true
     
 });
-
-//find{name: "loquesea"} o {} para todos
+app.get(BASE_API_PATH+"/f-one-drivers/loadInitialData",(req,res)=>{
+    console.log(Date() + " - Trying to load 2 drivers");
+    
+    //find{name: "loquesea"} o {} para todos
 dbF_One.find({},(err,f_one_drivers)=>{
     if(err){
         console.error("Error acceso DB");
@@ -64,12 +66,14 @@ dbF_One.find({},(err,f_one_drivers)=>{
     if(f_one_drivers.length==0){
         console.log("Empty DB");
         dbF_One.insert(initialF_one_drivers);
-    }else{
         console.log("DB initialized with " + f_one_drivers.length + " drivers" );
+    }else{
+        console.log("DB already have " + f_one_drivers.length + " drivers" );
     }
     
 });
 
+});
 //GET a ruta base
 app.get(BASE_API_PATH+"/f-one-drivers",(req,res)=>{
     console.log(Date() + " - GET / f-one-drivers");
