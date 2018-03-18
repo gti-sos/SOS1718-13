@@ -15,7 +15,7 @@ var dbAgr = __dirname+"/f-one-drivers.db";
 var dbMotoGPChampions = __dirname+"/motogpchampions.db";
 
 
-//app.use("/",express.static(path.join(__dirname+"/public")));
+app.use("/",express.static(path.join(__dirname+"/public")));
 app.get("/hello",(req,res)=>{
     res.send("Hello World");
 });
