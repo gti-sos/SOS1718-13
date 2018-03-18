@@ -209,13 +209,14 @@ app.get(BASE_API_PATH+"/motogpchampions/loadInitialData",(req,res)=>{
         if(err){
             console.error("Error accesing DB");
             res.sendStatus(500);
+            process.exit(1);
         }
         if(motogpchampions.length == 0){
             console.log("Empty DB");
             dbMotoGPChampions.insert(initialMotoGPChampions);
-            //res.sendStatus(200);
-        }else{
             console.log("DB initialized with "+motogpchampions.length+" Moto GP Champions.");
+        }else{
+            console.log("DB has "+motogpchampions.length+" Moto GP Champions.");
         }
     });    
 });
