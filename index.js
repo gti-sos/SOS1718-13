@@ -8,8 +8,12 @@ var app = express();
 app.use(bodyParser.json());
 var port = (process.env.PORT || 1607);
 
+
 var BASE_API_PATH = "/api/v1";
+
 var dbAgr = __dirname+"/f-one-drivers.db";
+var dbMotoGPChampions = __dirname+"/motogpchampions.db";
+
 
 //app.use("/",express.static(path.join(__dirname+"/public")));
 app.get("/hello",(req,res)=>{
@@ -184,11 +188,161 @@ app.delete(BASE_API_PATH+"/f-one-drivers/:year",(req,res)=>{
     res.sendStatus(200);//OK
 });
 
-////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////ALEJANDRO: MOTOGPCHAMPIONS
+///////////////////////////////VARIABLES INICIALES:
+var initialMotoGPChampions = [
+        { "year" : 1949, "country" : "united_kingdom", "rider": "leslie_graham", "constructor": "ajs", "win": 2},
+        { "year" : 1950, "country" : "italy", "rider": "umberto_masetti", "constructor": "gilera", "win": 2}
+    ];
+///////////////////////////////INICIALIZAR BASE DE DATOS:
+var dbMotoGPChampions = new DataStore({
+    filename: dbMotoGPChampions,
+    autoload: true                
+});
+
+app.get(BASE_API_PATH+"/motogpchampions/loadInitialData",(req,res)=>{
+    dbMotoGPChampions.find({},(err,motogpchampions)=>{
+        if(err){
+            console.error("Error accesing DB");
+            res.sendStatus(500);
+        }
+        if(motogpchampions.length == 0){
+            console.log("Empty DB");
+            dbMotoGPChampions.insert(initialMotoGPChampions);
+            //res.sendStatus(200);
+        }else{
+            console.log("DB initialized with "+motogpchampions.length+" Moto GP Champions.");
+        }
+    });    
+});
+
+/////////////////////////////////////////////////////////////ACCIONES PARA LA DB MOTOGPCHAMPIONS DE ALEJANDRO:
+// Hacer un  GET a COLLECTION:
+app.get(BASE_API_PATH+"/motogpchampions",(req,res) => {
+    console.log(Date() + " - GET /motogpchampions");
+    
+    dbMotoGPChampions.find({},(err,motogpchampions)=>{
+        if(err){
+            console.error("Error accesing DB");
+            res.sendStatus(500);
+            return;
+        }
+        res.send(motogpchampions);
+    });    
+});
+//Hacer un GET a RECURSO CONCRETO
+app.get(BASE_API_PATH+"/motogpchampions/:country",(req,res)=>{
+    var country = req.params.country;
+    console.log(Date() + " - GET /motogpchampions/"+country);
+    
+    dbMotoGPChampions.find({country : country},(err,motogpchampions)=>{
+    if(err){
+        console.error("Error acceso DB");
+        res.sendStatus(500);
+        return;
+    }
+    res.send(motogpchampions);
+    });
+    /*res.send(initialMotoGPChampions.filter((c)=>{
+        return (c.country == country);
+    })[0]);*/
+});
+//Hacer un GET a un RECURSO con 2 parametros
+app.get(BASE_API_PATH+"/motogpchampions/:country/:year/",(req,res)=>{
+    var year = req.params.year;
+    var country = req.params.country;
+    
+    console.log(Date() + " - GET /motogpchampions/" +country + "/"+year);
+    dbMotoGPChampions.find({ country: country }, { year: Number(year)},(err,motogpchampions)=>{
+    if(err){
+        console.error("Error acceso DB");
+        res.sendStatus(500);
+        return;
+    }
+    res.send(motogpchampions);
+    });
+});
+// Hacer un  POST a COLLECTION
+app.post(BASE_API_PATH+"/motogpchampions",(req,res)=>{
+    console.log(Date() + " - POST /motogpchampions");
+    var champion = req.body;
+    dbMotoGPChampions.insert(champion);
+    res.sendStatus(201);
+});
+//Hacer un POST a RECURSO CONCRETO
+app.post(BASE_API_PATH+"/motogpchampions/:year",(req,res)=>{
+    var year = req.params.year;
+    console.log(Date() + " - POST /motogpchampions/"+year);
+    res.sendStatus(405);
+});
+//Hacer un PUT a COLLECTION
+app.put(BASE_API_PATH+"/motogpchampions",(req,res)=>{
+    console.log(Date() + " - PUT /motogpchampions");
+    res.sendStatus(405);  //Method not allowed
+});
+//Hacer un PUT a RECURSO CONCRETO
+app.put(BASE_API_PATH+"/motogpchampions/:year",(req,res)=>{
+    var year = req.params.year;
+    var champion = req.body;
+    
+    console.log(Date() + " - PUT /motogpchampions/"+year);
+    
+    if(year != champion.year){
+        res.sendStatus(409);
+        console.warn(Date()+" - Hacking attempt!");
+        return;
+    }
+    dbMotoGPChampions.update({"year": parseInt(champion.year)},champion,(err,numUpdated)=>{
+        console.log("Update: "+numUpdated);
+    });
+
+    res.sendStatus(200);
+});
+//Hacer un DELETE a COLLECTION
+app.delete(BASE_API_PATH+"/motogpchampions",(req,res)=>{
+    console.log(Date() + " - DELETE /motogpchampions");
+    initialMotoGPChampions = [];
+    
+    dbMotoGPChampions.remove({},{multi:true});
+    
+    res.sendStatus(200);
+});
+//Hacer un DELETE a RECURSO CONCRETO
+app.delete(BASE_API_PATH+"/motogpchampions/:year",(req,res)=>{
+    var year = req.params.year;
+    console.log(Date() + " - DELETE /motogpchampions/"+year);
+    dbMotoGPChampions.remove({year:parseInt(year)});
+    /*initialMotoGPChampions = initialMotoGPChampions.filter((c)=>{
+        return (c.year !=year);
+    });*/
+    
+    res.sendStatus(200);
+});
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//--------------------------------------------------------------------------------------------------------------------------------------------//
 app.listen(port,()=>{
     console.log("Server ready on port "+port+ "!");
 }).on("error",(e)=>{
