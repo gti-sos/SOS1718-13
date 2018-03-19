@@ -68,6 +68,7 @@ app.get(BASE_API_PATH+"/gpi-stats/loadInitialData",(req,res)=>{
     console.log(Date()+" - Trying to load Stats");
     
     dbGpi.find({},(err,stats)=>{
+        console.log(Date()+" - Looking into the data");
     if(err){
         console.error("error accesing db");
         process.exit(1);
@@ -75,6 +76,7 @@ app.get(BASE_API_PATH+"/gpi-stats/loadInitialData",(req,res)=>{
     if(stats.length == 0){
         console.log("empty db");
         dbGpi.insert(ini_gpi_stats);
+        res.sendStatus(201);
     }else{
         console.log("DB initiallited with "+stats.length+"stats");
     }
@@ -244,6 +246,7 @@ dbF_One.find({},(err,f_one_drivers)=>{
         console.log("Empty DB");
         dbF_One.insert(initialF_one_drivers);
         console.log("DB initialized with " + f_one_drivers.length + " drivers" );
+        res.sendStatus(201);
     }else{
         console.log("DB already have " + f_one_drivers.length + " drivers" );
     }
