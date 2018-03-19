@@ -22,6 +22,10 @@ app.get("/hello",(req,res)=>{
 });
 
 //////////////////////////////////////PRL (GPI-STATS)///////////////////////////////////////
+app.get(BASE_API_PATH+"/gpi-stats/help", (req,res)=>{
+    res.redirect("https://documenter.getpostman.com/view/395479/sos1718-gpi-stats/RVnZhdpa");
+});
+
 var gpi_stats;
 var ini_gpi_stats = [
                  { "country": "iceland",
@@ -63,7 +67,7 @@ var dbGpi = new DataStore({
 app.get(BASE_API_PATH+"/gpi-stats/loadInitialData",(req,res)=>{
     console.log(Date()+" - Trying to load Stats");
     
-dbGpi.find({},(err,stats)=>{
+    dbGpi.find({},(err,stats)=>{
     if(err){
         console.error("error accesing db");
         process.exit(1);
