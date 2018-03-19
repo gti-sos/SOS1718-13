@@ -395,6 +395,7 @@ app.get(BASE_API_PATH+"/motogpchampions/loadInitialData",(req,res)=>{
             console.log("Empty DB");
             dbMotoGPChampions.insert(initialMotoGPChampions);
             console.log("DB initialized with "+motogpchampions.length+" Moto GP Champions.");
+            res.sendStatus(200)
         }else{
             console.log("DB has "+motogpchampions.length+" Moto GP Champions.");
         }
