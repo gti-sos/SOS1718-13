@@ -383,23 +383,24 @@ var dbMotoGPChampions = new DataStore({
     filename: dbMotoGPChampions,
     autoload: true                
 });
-
 app.get(BASE_API_PATH+"/motogpchampions/loadInitialData",(req,res)=>{
-    dbMotoGPChampions.find({},(err,motogpchampions)=>{
-        if(err){
-            console.error("Error accesing DB");
-            res.sendStatus(500);
-            process.exit(1);
-        }
-        if(motogpchampions.length == 0){
-            console.log("Empty DB");
-            dbMotoGPChampions.insert(initialMotoGPChampions);
-            console.log("DB initialized with "+motogpchampions.length+" Moto GP Champions.");
-            res.sendStatus(200)
-        }else{
-            console.log("DB has "+motogpchampions.length+" Moto GP Champions.");
-        }
-    });    
+    console.log(Date()+" - Trying to load Stats");
+    
+    dbGpi.find({},(err,stats)=>{
+        console.log(Date()+" - Looking into the data");
+    if(err){
+        console.error("error accesing db");
+        process.exit(1);
+    }
+    if(stats.length == 0){
+        console.log("empty db");
+        dbMotoGPChampions(initialMotoGPChampions);
+        res.sendStatus(201);
+    }else{
+        console.log("DB initiallited with "+stats.length+"stats");
+    }
+});
+    
 });
 
 /////////////////////////////////////////////////////////////ACCIONES PARA LA DB MOTOGPCHAMPIONS DE ALEJANDRO:
