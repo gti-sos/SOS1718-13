@@ -394,7 +394,7 @@ app.get(BASE_API_PATH+"/motogpchampions/loadInitialData",(req,res)=>{
     }
     if(stats.length == 0){
         console.log("empty db");
-        dbMotoGPChampions(initialMotoGPChampions);
+        dbMotoGPChampions.insert(initialMotoGPChampions);
         res.sendStatus(201);
     }else{
         console.log("DB initiallited with "+stats.length+"stats");
