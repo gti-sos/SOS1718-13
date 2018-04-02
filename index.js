@@ -11,7 +11,17 @@ var port = (process.env.PORT || 1607);
 
 var BASE_API_PATH = "/api/v1";
 
-var dbAgr = __dirname+"/f-one-drivers.db";
+var MongoClient = require("mongodb").MongoClient;
+
+
+/////////VARIABLES API:
+var motogpchampsApi = require("./motogpchampsApi");
+var fonedriversApi = require("./fonedriversApi");
+
+
+/////////BASES DE DATOS:
+var mdbMotoGPChamps = "mongodb://valentino:rossi@ds129939.mlab.com:29939/sos1718-13-motogpchamps";
+var mdbFOneDrivers = "mongodb://alfgutrom:alfgutrom1.@ds231559.mlab.com:31559/sos1718-agr-sandbox";
 var dbMotoGPChampions = __dirname+"/motogpchampions.db";
 var dbGpiStats = __dirname+"/gpi-stats.db";
 
@@ -200,177 +210,51 @@ app.delete(BASE_API_PATH+"/gpi-stats/:year",(req,res)=>{
 
 ////////////////AGR/////////////////////////////////////////////////////////////////////////
 
-var f_one_drivers;
+//var f_one_drivers;
 var initialF_one_drivers = [
-                    { 
-                      "year" : 1950, 
-                      "driver" : "Giuseppe Farina",
-                      "age" : 44,
-                      "team" : "Alfa Romeo",
-                      "engine" : "Alfa Romeo",
-                      "win" : 3,
-                      "point" : 30,
-                      "race" : "Italian Grand Prix",
-                      "country" : "Italy"
-                    },
-                    {
-                      "year" : 1951, 
-                      "driver" : "Juan Manuel Fangio",
-                      "age" : 40,
-                      "team" : "Alfa Romeo",
-                      "engine" : "Alfa Romeo",
-                      "win" : 3,
-                      "point" : 31,
-                      "race" : "Spanish Grand Prix",
-                      "country" : "Argentina"
-                    }
-                    ];
+{"year": 1950,"driver": "Giuseppe Farina","age": 44,"team": "Alfa Romeo","engine": "Alfa Romeo","win": 3,
+"point": 30,"race": "Italian Grand Prix","country": "Italy"}, 
 
-var dbF_One = new DataStore({
+{"year": 1951,"driver": "Juan Manuel Fangio","age": 40,"team": "Alfa Romeo","engine": "Alfa Romeo","win": 3,
+"point": 31,"race": "Spanish Grand Prix","country": "Argentina"}, 
+
+{"year": 1952,"driver": "Alberto Ascari","age": 34,"team": "Ferrari","engine": "Ferrari","win": 6,
+"point": 36,"race": "German Grand Prix","country": "Italy"}, 
+
+{"year": 1953,"driver": "Alberto Ascari","age": 35,"team": "Ferrari","engine": "Ferrari","win": 5,
+"point": 34,"race": "Swiss Grand Prix","country": "Italy"}, 
+
+{"year": 1954,"driver": "Juan Manuel Fangio","age": 43,"team": "Maserati","engine": "Maserati","win": 6,
+"point": 42,"race": "Swiss Grand Prix","country": "Argentina"}];
+/*var dbF_One = new DataStore({
 
     filename: dbAgr,
     autoload: true
     
-});
-app.get(BASE_API_PATH+"/f-one-drivers/loadInitialData",(req,res)=>{
-    console.log(Date() + " - Trying to load 2 drivers");
-    
-    //find{name: "loquesea"} o {} para todos
-dbF_One.find({},(err,f_one_drivers)=>{
-    if(err){
-        console.error("Error acceso DB");
-        process.exit(1);//Cierra el servidor
+});*/
+    /////////////////////BASE DE DATOS F-ONE-DRIVERS:
+        MongoClient.connect(mdbFOneDrivers, { native_parser: true }, (err, mlabs) => {
+    if (err) {
+        console.error("Error accesing f-one-drivers DB: " + err);
+        process.exit(1);
     }
-    
-    if(f_one_drivers.length==0){
-        console.log("Empty DB");
-        dbF_One.insert(initialF_one_drivers);
-        console.log("DB initialized with " + f_one_drivers.length + " drivers" );
-        res.sendStatus(201);
-    }else{
-        console.log("DB already have " + f_one_drivers.length + " drivers" );
-    }
-    
-});
+    console.log("Connected to f-one-drivers DB.");
+    var fonedriversdatabase = mlabs.db("sos1718-agr-sandbox");
+    var dbFOneDrivers = fonedriversdatabase.collection("drivers");
 
-});
-//GET a ruta base
-app.get(BASE_API_PATH+"/f-one-drivers",(req,res)=>{
-    console.log(Date() + " - GET / f-one-drivers");
-    
-    dbF_One.find({},(err,f_one_drivers)=>{
-    if(err){
-        console.error("Error acceso DB");
-        res.sendStatus(500);
-        return;
-    }
-        
-    res.send(f_one_drivers);
+    dbFOneDrivers.find({}).toArray((err, drivers) => {
+        if (err) {
+            console.error("Error accesing DB");
+            //process.exit(1);
+        }
+        if (drivers.length == 0) {
+            console.log("Empty DB Principal");
+        }
+        else {
+            console.log("F-One-Drivers DB has " + drivers.length + " F-One-Drivers.");
+        }
     });
-
-});
-
-//GET a un recurso
-app.get(BASE_API_PATH+"/f-one-drivers/:year",(req,res)=>{
-    var year = req.params.year;
-    
-    console.log(Date() + " - GET / f-one-drivers/" + year);
-    dbF_One.find({year : parseInt(year)},(err,driver)=>{
-    if(err){
-        console.error("Error acceso DB");
-        res.sendStatus(500);
-        return;
-    }
-    res.send(driver);
-    });
-    
-    /*res.send(f_one_drivers.filter((c)=>{
-        return (c.year==year);
-        
-    })[0]);*/
-});
-
-//GET a un recurso con 2 parametros
-app.get(BASE_API_PATH+"/f-one-drivers/:driver/:year/",(req,res)=>{
-    var year = req.params.year;
-    var driver = req.params.driver;
-    
-    console.log(Date() + " - GET / f-one-drivers/" +driver + "/"+year);
-    res.send(year);
-});
-
-//POST a ruta base
-app.post(BASE_API_PATH+"/f-one-drivers",(req,res)=>{
-    console.log(Date() + " - POST / f-one-drivers");
-    var driver = req.body;
-    dbF_One.insert(driver);
-    //f_one_drivers.push(driver);
-    res.sendStatus(201); //Created
-});
-
-//POST a un recurso
-app.post(BASE_API_PATH+"/f-one-drivers/:year",(req,res)=>{
-    var year = req.params.year;
-    
-    console.log(Date() + " - POST / f-one-drivers/" + year);
-    res.sendStatus(405);//Method Not Allowed
-});
-
-
-//PUT a ruta base
-app.put(BASE_API_PATH+"/f-one-drivers",(req,res)=>{
-    console.log(Date() + " - PUT / f-one-drivers");
-    res.sendStatus(405);//Method Not Allowed
-});
-
-//PUT a un recurso
-app.put(BASE_API_PATH+"/f-one-drivers/:year",(req,res)=>{
-    var year = req.params.year;
-    var driver = req.body;
-    
-    console.log(Date() + " - PUT / f-one-drivers/" + year);
-        if(year != driver.year){
-        res.sendStatus(409);//Conflict
-        console.warn(Date() + " - Hacking attempt!");
-        return;
-    }
-    
-    dbF_One.update({year : parseInt(driver.year)},driver,(err,numUpdate)=>{console.log("Updated: " + numUpdate);});
-    
-
-    /*f_one_drivers = f_one_drivers.map((c)=>{
-        if(c.year==driver.year)
-            return driver;
-            else
-            return c;
-        
-    });*/
-    
-    res.sendStatus(200);//OK
-});
-
-//DELETE a ruta base
-app.delete(BASE_API_PATH+"/f-one-drivers",(req,res)=>{
-    console.log(Date() + " - DELETE / f-one-drivers");
-    f_one_drivers = [];
-    
-    dbF_One.remove({},{multi:true});
-    
-    res.sendStatus(200);//OK
-});
-
-//DELETE a un recurso
-app.delete(BASE_API_PATH+"/f-one-drivers/:year",(req,res)=>{
-    var year = req.params.year;
-    
-    console.log(Date() + " - DELETE / f-one-drivers/" + year);
-    dbF_One.remove({year : parseInt(year)});
-    /*f_one_drivers = f_one_drivers.filter((c)=>{
-        return (c.year!=year);
-        
-    });*/
-    res.sendStatus(200);//OK
-});
+    fonedriversApi.register(app, dbFOneDrivers, initialF_one_drivers);});
 
 //////////////////////////////////////////////////////////////////ALEJANDRO: MOTOGPCHAMPIONS
 ///////////////////////////////VARIABLES INICIALES:
