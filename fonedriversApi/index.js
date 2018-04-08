@@ -32,7 +32,7 @@ fonedriversApi.register = function(app, db, initialF_one_drivers) {
         });
 
     });
-    //GET a ruta base
+   /* //GET a ruta base
     app.get(BASE_API_PATH + "/f-one-drivers", (req, res) => {
         console.log(Date() + " - GET / f-one-drivers");
 
@@ -46,8 +46,89 @@ fonedriversApi.register = function(app, db, initialF_one_drivers) {
             res.send(f_one_drivers.map((c) => { delete c._id; return c; }));
         });
 
-    });
+    });*/
 
+
+ //GET a ruta base (paginacion y busqueda)
+    app.get(BASE_API_PATH + "/f-one-drivers", (req, res) => {
+        //var year = req.params.year;
+        var driver=req.query.driver;
+        var age=req.query.age;
+        var team=req.query.team;
+        var engine=req.query.engine;
+        var win=req.query.win;
+        var point=req.query.point;
+        var race=req.query.race;
+        var country=req.query.country;
+        
+        var limit = Number(req.query.limit);
+        var offset = Number(req.query.offset);
+        var yearfrom = req.query.from;
+        var yearto = req.query.to;
+        var query={};
+        console.log(Date() + " - GET / f-one-drivers from " + yearfrom + " to " + yearto);
+        if (driver != undefined && driver.length > 0 && /^[a-z\d\-_\s]+$/i.test(driver)) {
+            /*if (query == null) {
+                query = {
+                    "driver": driver
+                };
+            }
+            else {*/
+                query.$and = [{
+                    "driver": driver
+                }];
+            //}
+            console.log("Entra en driver => " + query);
+
+        }
+        if (country != undefined && country.length > 0 && /^[a-z\d\-_\s]+$/i.test(country)) {
+            if (query == null) {
+                query = {
+                    "country": country
+                };
+            }
+            else {
+                query.$and = [{
+                    "country": country
+                }];
+            }
+
+        }
+        
+        if (yearfrom == undefined) {
+            yearfrom = 0;
+        }
+        if (yearto == undefined) {
+            yearto = Number.POSITIVE_INFINITY;
+        }
+        query.$and = [{
+            "year": {
+                "$gte": Number(yearfrom)
+            }
+        }, {
+            "year": {
+                "$lte": Number(yearto)
+            }
+        }];
+        console.log(query);
+        db.find(query).skip(offset).limit(limit).toArray((err, driver) => {
+            if (err) {
+                console.error("Error acceso DB");
+                res.sendStatus(500);
+                return;
+            }
+            if(driver.length==0)
+            res.sendStatus(404);
+            else
+            res.send(driver.map((c) => { delete c._id; return c; }));
+        });
+
+        /*res.send(f_one_drivers.filter((c)=>{
+            return (c.year==year);
+            
+        })[0]);*/
+    });
+    
     //GET a un recurso
     app.get(BASE_API_PATH + "/f-one-drivers/:year", (req, res) => {
         var year = req.params.year;
@@ -59,6 +140,9 @@ fonedriversApi.register = function(app, db, initialF_one_drivers) {
                 res.sendStatus(500);
                 return;
             }
+            if(driver.length==0)
+            res.sendStatus(404);
+            
             res.send(driver.map((c) => { delete c._id; return c; }));
         });
 
@@ -68,14 +152,14 @@ fonedriversApi.register = function(app, db, initialF_one_drivers) {
         })[0]);*/
     });
 
-    //GET a un recurso con 2 parametros
+    /*//GET a un recurso con 2 parametros ////NO TIENE SENTIDO
     app.get(BASE_API_PATH + "/f-one-drivers/:driver/:year/", (req, res) => {
         var year = req.params.year;
         var driver = req.params.driver;
 
         console.log(Date() + " - GET / f-one-drivers/" + driver + "/" + year);
         res.send(year);
-    });
+    });*/
 
     //POST a ruta base
     app.post(BASE_API_PATH + "/f-one-drivers", (req, res) => {
