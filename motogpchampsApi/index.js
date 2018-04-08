@@ -26,6 +26,7 @@ motogpchampsApi.register = function(app, db, initialMotoGPChamps) {
         }
         return valid;
     }*/
+    app.get(BASE_API_PATH + "/motogpchamps/docs", (req, res) => {res.redirect("https://documenter.getpostman.com/view/3897424/sos1718-13-motogpchampions/RVu5i8YA")});
     ////////////////////////////////   LoadInitialData:  /////////////////////////
     app.get(BASE_API_PATH + "/motogpchamps/loadInitialData", (req, res) => {
         console.log(Date() + " - Trying to load 5 champs");
