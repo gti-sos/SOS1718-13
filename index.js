@@ -299,7 +299,7 @@ MongoClient.connect(mdbFOneDrivers, { native_parser: true }, (err, mlabs) => {
             //process.exit(1);
         }
         if (drivers.length == 0) {
-            console.log("Empty DB Principal");
+            console.log("Empty DB ");
         }
         else {
             console.log("F-One-Drivers DB has " + drivers.length + " F-One-Drivers.");
@@ -316,7 +316,6 @@ var initialMotoGPChamps = [
     { "year": 1951, "country": "united_kingdom", "rider": "geoff_duke", "constructor": "norton", "win": 4 },
     { "year": 1952, "country": "italy", "rider": "umberto_masetti", "constructor": "gilera", "win": 2 },
     { "year": 1953, "country": "united_kingdom", "rider": "geoff_duke", "constructor": "gilera", "win": 4 },
-
 ];
 
 ///////////////////////////////INICIALIZAR BASE DE DATOS:
@@ -339,8 +338,8 @@ MongoClient.connect(mdbMotoGPChamps, { native_parser: true }, (err, mlabs) => {
             console.error("Error accesing DB");
             process.exit(1);
         }
-        if (champs.length == 0) {
-            console.log("Empty DB Principal");
+        else if (champs.length == 0) {
+            console.log("Empty DB Longitud =0. ");
             //dbMotoGPChamps.insert(initialMotoGPChamps);
         }
         else {

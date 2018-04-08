@@ -11,7 +11,7 @@ motogpchampsApi.register = function(app, db, initialMotoGPChamps) {
 
     //Pruebas APIkey:
     //Comprueba si la apikey pasada es validad o indefinidad(imprime error)
-    function CheckKey(key, response) {
+    /*function CheckKey(key, response) {
         var valid = false;
         if (key == undefined) {
             console.log("Error: APIkey doesn't provided");
@@ -25,29 +25,30 @@ motogpchampsApi.register = function(app, db, initialMotoGPChamps) {
             valid = true;
         }
         return valid;
-    }
+    }*/
     ////////////////////////////////   LoadInitialData:  /////////////////////////
     app.get(BASE_API_PATH + "/motogpchamps/loadInitialData", (req, res) => {
-        var keyprovided = req.query.apikey;
-        if (CheckKey(keyprovided, res)) {
+        console.log(Date() + " - Trying to load 5 champs");
+        /*var keyprovided = req.query.apikey;
+        if (CheckKey(keyprovided, res)) {*/
             db.find({}).toArray((err, motogpchamps) => {
                 if (err) {
                     console.error("Error accesing DB");
                     res.sendStatus(500);
                     return;
                 }
-                if (motogpchamps.length == 0) {
-                    console.log("Empty DB (InitialData)");
+                else if (motogpchamps.length == 0) {
+                    console.log("Empty DB ");
                     db.insert(initialMotoGPChamps);
-                    console.log("DB initialized with " + motogpchamps.length + " champs.");
+                    //console.log("DB initialized with " + motogpchamps.length + " champs.");
                     res.sendStatus(201);
                 }
                 else {
                     console.log("DB has " + motogpchamps.length + " Moto GP Champions.");
                 }
-                res.redirect(BASE_API_PATH + "/motogpchamps");
+                //res.redirect(BASE_API_PATH + "/motogpchamps");
             });
-        }
+        /*}*/
     });
     //////////////////////////////////////      API REST:         //////////////////////
     //GET a COLECCIÓN:
@@ -58,7 +59,7 @@ motogpchampsApi.register = function(app, db, initialMotoGPChamps) {
         var offset = Number(req.query.offset);
         var yearfrom = req.query.from;
         var yearto = req.query.to;
-        var keyprovided = req.query.apikey;
+        //var keyprovided = req.query.apikey;
         var mongoquery = {};
         if (yearfrom == undefined) {
             yearfrom = 0;
@@ -75,27 +76,31 @@ motogpchampsApi.register = function(app, db, initialMotoGPChamps) {
                 "lte": Number(yearto)
             }
         }];
-        if (CheckKey(keyprovided, res)) {
+        console.log(mongoquery);
+        /*if (CheckKey(keyprovided, res)) {*/
             db.find(mongoquery).limit(limit).skip(offset).toArray((err, motogpchamps) => {
                 if (err) {
                     console.error("Error accesing DB");
                     res.sendStatus(500);
                     return;
                 }
-                res.send(motogpchamps.map((c) => {
+                else if(motogpchamps.length==0){
+                    res.sendStatus(404); //Not Found
+                }else{
+                    res.send(motogpchamps.map((c) => {
                     delete c._id;
                     return c;
-                }));
+                    }));
+                }
             });
-
-        }
+        /*}*/
     });
     //POST a COLLECCIÓN:
     app.post(BASE_API_PATH + "/motogpchamps", (req, res) => {
         console.log(Date() + " - POST /motogpchamps");
         var champ = req.body;
-        var keyprovided = req.query.keyprovided;
-        if (CheckKey(keyprovided, res)) {
+       // var keyprovided = req.query.keyprovided;
+        /*if (CheckKey(keyprovided, res)) {*/
             if (!champ) {
                 console.log("WARNING: New request to /motogpchamps/ without name");
                 res.sendStatus(400); //Bad request
@@ -127,21 +132,21 @@ motogpchampsApi.register = function(app, db, initialMotoGPChamps) {
                     });
                 }
             }
-        }
+        /*}*/
     });
     //PUT a COLLECCIÓN:
     app.put(BASE_API_PATH + "/motogpchamps", (req, res) => {
         var keyprovided = req.query.apikey;
-        if (CheckKey(keyprovided, res)) {
+        /*if (CheckKey(keyprovided, res)) {*/
             console.log(Date() + " - PUT /motogpchamps");
             res.sendStatus(405); //Method not allowed
-        }
+        /*}*/
     });
     //DELETE a COLLECCIÓN:
     app.delete(BASE_API_PATH + "/motogpchamps", (req, res) => {
         console.log(Date() + " - DELETE /motogpchamps");
-        var keyprovided = req.query.apikey;
-        if (CheckKey(keyprovided, res)) {
+        /*var keyprovided = req.query.apikey;
+        if (CheckKey(keyprovided, res)) {*/
             db.remove({}, { multi: true }, (err, result) => {
                 var numRemoved = JSON.parse(result);
                 if (err) {
@@ -159,7 +164,7 @@ motogpchampsApi.register = function(app, db, initialMotoGPChamps) {
                     }
                 }
             });
-        }
+        /*}*/
     });
 
 
@@ -210,7 +215,7 @@ motogpchampsApi.register = function(app, db, initialMotoGPChamps) {
                 "$lte": Number(yearto)
             }
         }];
-        if (CheckKey(keyprovided, res)) {
+        /*if (CheckKey(keyprovided, res)) {*/
             db.find(
                 mongoquery
             ).skip(offset).limit(limit).toArray((err, filteredChamps) => {
@@ -228,12 +233,12 @@ motogpchampsApi.register = function(app, db, initialMotoGPChamps) {
                     }
                 }
             });
-        }
+        /*}*/
     });
     //GET a un RECURSO CONCRETO 2 PARÁMETROS:
     app.get(BASE_API_PATH + "/motogpchamps/:year/country", (req, res) => {
-        var keyprovided = req.query.apikey;
-        if (CheckKey(keyprovided, res)) {
+        /*var keyprovided = req.query.apikey;
+        if (CheckKey(keyprovided, res)) {*/
             var year = parseInt(req.params.year);
             var country = req.params.country;
             var limit = Number(req.query.limit);
@@ -266,7 +271,7 @@ motogpchampsApi.register = function(app, db, initialMotoGPChamps) {
                     }
                 });
             }
-        }
+        /*}*/
 
     });
 
@@ -278,7 +283,7 @@ motogpchampsApi.register = function(app, db, initialMotoGPChamps) {
         var keyprovided = req.query.apikey;
         console.log(Date() + " - DELETE /motogpchamps/" + year);
 
-        if (CheckKey(keyprovided, res)) {
+        /*if (CheckKey(keyprovided, res)) {*/
             if (!year) {
                 console.log("WARNING: Bad request");
                 res.sendStatus(400); //Bad request
@@ -305,16 +310,16 @@ motogpchampsApi.register = function(app, db, initialMotoGPChamps) {
                     }
                 })
             }
-        }
+        /*}*/
     });
     //Hacer un POST a RECURSO CONCRETO
     app.post(BASE_API_PATH + "/motogpchamps/:year", (req, res) => {
-        var keyprovided = req.query.apikey;
-        if (CheckKey(keyprovided, res)) {
+        /*var keyprovided = req.query.apikey;
+        if (CheckKey(keyprovided, res)) {*/
             var year = parseInt(req.params.year);
             console.log(Date() + " - POST /motogpchamps/" + year);
             res.sendStatus(405); //Method not allowed
-        }
+        //}
     });
     //Hacer un PUT a RECURSO CONCRETO
     app.put(BASE_API_PATH + "/motogpchamps/:year/:country", (req, res) => {
@@ -325,7 +330,7 @@ motogpchampsApi.register = function(app, db, initialMotoGPChamps) {
 
         console.log(Date() + " - PUT /motogpchamps/" + year);
 
-        if (CheckKey(keyprovided, res)) {
+        /*if (CheckKey(keyprovided, res)) {*/
             if (!updatedChamp) {
                 console.log("WARNING: Bad request");
                 res.sendStatus(400);
@@ -370,7 +375,7 @@ motogpchampsApi.register = function(app, db, initialMotoGPChamps) {
                     });
                 }
             }
-        }
+        /*}*/
     });
 
 }
