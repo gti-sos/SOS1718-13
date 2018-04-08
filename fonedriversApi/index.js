@@ -135,21 +135,44 @@ fonedriversApi.register = function(app, db, initialF_one_drivers) {
 
     //POST a ruta base
     var existe = false;
+    var camposOk = true;
+    
     app.post(BASE_API_PATH + "/f-one-drivers", (req, res) => {
         console.log(Date() + " - POST / f-one-drivers");
         var driver = req.body;
-
+        
+        if(driver==undefined || 
+        isNaN(driver.year) || 
+        driver.driver=="" || 
+        driver.driver==undefined || 
+        isNaN(driver.age) || 
+        isNaN(driver.win) || 
+        isNaN(driver.point) ||
+        driver.team=="" || 
+        driver.team==undefined || 
+        driver.engine=="" || 
+        driver.engine==undefined || 
+        driver.race=="" || 
+        driver.race==undefined || 
+        driver.country=="" ||
+        driver.country==undefined
+        )
+            camposOk = false;
+        console.log(driver);
         db.find({ "year": parseInt(driver.year) }).toArray((err, result) => {
             if (err) {
                 console.error("Error acceso DB");
                 res.sendStatus(500);
                 return;
             }
-            console.log("EL TAMAÑO ES => " + result.length );
+            console.log("VALOR DE CAMPOSOK => "+camposOk);
+            //console.log("EL TAMAÑO ES => " + result.length );
             if(result.length>0)
             {res.sendStatus(409);}
+            else if(!camposOk){res.sendStatus(400);//Bad Request
+            }
         else{
-            console.log("VALOR DE EXISTE EN ELSE => " + existe);
+            //console.log("VALOR DE EXISTE EN ELSE => " + existe);
         db.insert(driver);
         //f_one_drivers.push(driver);
         res.sendStatus(201); //Created
@@ -176,24 +199,35 @@ fonedriversApi.register = function(app, db, initialF_one_drivers) {
     app.put(BASE_API_PATH + "/f-one-drivers/:year", (req, res) => {
         var year = req.params.year;
         var driver = req.body;
-
+        var camposOk = true;
         console.log(Date() + " - PUT / f-one-drivers/" + year);
         if (year != driver.year) {
             res.sendStatus(400); //Bad Request
             console.warn(Date() + " - Hacking attempt!");
             return;
         }
+        if(driver==undefined || 
+        isNaN(driver.year) || 
+        driver.driver=="" || 
+        driver.driver==undefined || 
+        isNaN(driver.age) || 
+        isNaN(driver.win) || 
+        isNaN(driver.point) ||
+        driver.team=="" || 
+        driver.team==undefined || 
+        driver.engine=="" || 
+        driver.engine==undefined || 
+        driver.race=="" || 
+        driver.race==undefined || 
+        driver.country=="" ||
+        driver.country==undefined
+        )
+        {camposOk = false; 
+        res.sendStatus(400);}
+        else{
         db.update({ "year": parseInt(driver.year, 10) }, driver, (err, numUpdate) => { console.log("Updated: " + numUpdate); });
-
-        /*f_one_drivers = f_one_drivers.map((c)=>{
-            if(c.year==driver.year)
-                return driver;
-                else
-                return c;
-            
-        });*/
-
         res.sendStatus(200); //OK
+        }
     });
 
     //DELETE a ruta base
@@ -220,4 +254,4 @@ fonedriversApi.register = function(app, db, initialF_one_drivers) {
     });
 
 
-}
+};
