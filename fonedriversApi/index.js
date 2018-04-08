@@ -137,6 +137,15 @@ fonedriversApi.register = function(app, db, initialF_one_drivers) {
     app.post(BASE_API_PATH + "/f-one-drivers", (req, res) => {
         console.log(Date() + " - POST / f-one-drivers");
         var driver = req.body;
+        db.find({ "year": parseInt(driver.year) }).toArray((err, driver) => {
+            if (err) {
+                console.error("Error acceso DB");
+                res.sendStatus(500);
+                return;
+            }
+            if(driver.length!=0){
+            res.sendStatus(409);return;}
+        })
         db.insert(driver);
         //f_one_drivers.push(driver);
         res.sendStatus(201); //Created
@@ -164,7 +173,7 @@ fonedriversApi.register = function(app, db, initialF_one_drivers) {
 
         console.log(Date() + " - PUT / f-one-drivers/" + year);
         if (year != driver.year) {
-            res.sendStatus(409); //Conflict
+            res.sendStatus(400); //Bad Request
             console.warn(Date() + " - Hacking attempt!");
             return;
         }
