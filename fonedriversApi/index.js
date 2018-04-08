@@ -134,32 +134,31 @@ fonedriversApi.register = function(app, db, initialF_one_drivers) {
     });*/
 
     //POST a ruta base
+
+    app.post(BASE_API_PATH + "/f-one-drivers", (req, res) => {
     var existe = false;
     var camposOk = true;
     
-    app.post(BASE_API_PATH + "/f-one-drivers", (req, res) => {
         console.log(Date() + " - POST / f-one-drivers");
         var driver = req.body;
-        
-        if(driver==undefined || 
+        console.log(driver);
+        if(driver===undefined || 
         isNaN(driver.year) || 
-        driver.driver=="" || 
-        driver.driver==undefined || 
+        driver.driver==="" || 
+        driver.driver===undefined || 
         isNaN(driver.age) || 
         isNaN(driver.win) || 
         isNaN(driver.point) ||
-        driver.team=="" || 
+        driver.team==="" || 
         driver.team==undefined || 
-        driver.engine=="" || 
-        driver.engine==undefined || 
-        driver.race=="" || 
-        driver.race==undefined || 
-        driver.country=="" ||
-        driver.country==undefined
-        )
-        console.log("Driver para hacer POST => " + driver);
-            camposOk = false;
-        console.log(driver);
+        driver.engine==="" || 
+        driver.engine===undefined || 
+        driver.race==="" || 
+        driver.race===undefined || 
+        driver.country==="" ||
+        driver.country===undefined
+        ){camposOk = false; console.log(driver);}
+        
         db.find({ "year": parseInt(driver.year) }).toArray((err, result) => {
             if (err) {
                 console.error("Error acceso DB");
