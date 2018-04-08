@@ -6,6 +6,10 @@ module.exports = fonedriversApi;
 fonedriversApi.register = function(app, db, initialF_one_drivers) {
     console.log("Registering routes for fonedriversApi. ");
 
+    //https://documenter.getpostman.com/view/4099109/sos1718-13-f-one-drivers/RVu5i8Th
+    app.get(BASE_API_PATH + "/f-one-drivers/docs", (req, res) => {res.redirect("https://documenter.getpostman.com/view/4099109/sos1718-13-f-one-drivers/RVu5i8Th")});
+    
+
 
     app.get(BASE_API_PATH + "/f-one-drivers/loadInitialData", (req, res) => {
         console.log(Date() + " - Trying to load 5 drivers");
