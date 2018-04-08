@@ -53,47 +53,51 @@ motogpchampsApi.register = function(app, db, initialMotoGPChamps) {
     //////////////////////////////////////      API REST:         //////////////////////
     //GET a COLECCIÓN:
     app.get(BASE_API_PATH + "/motogpchamps", (req, res) => {
-        console.log(Date() + " - GET /motogpchamps");
+        //var year = req.params.year;
+        var rider = req.query.rider;
+        var year = Number(req.query.year);
+        var constructor = req.query.constructor;
+        var win = Number(req.query.win);
+        var country = req.query.country;
 
         var limit = Number(req.query.limit);
         var offset = Number(req.query.offset);
         var yearfrom = req.query.from;
         var yearto = req.query.to;
-        //var keyprovided = req.query.apikey;
-        var mongoquery = {};
-        if (yearfrom == undefined) {
-            yearfrom = 0;
-        }
-        if (yearto == undefined) {
-            yearto = Number.POSITIVE_INFINITY;
-        }
-        mongoquery.$and = [{
-            "year": {
-                "$gte": Number(yearfrom)
+        var mdbQuery = {};
+
+
+        if (yearfrom == undefined) { yearfrom = 0; }
+        if (yearto == undefined) { yearto = Number.POSITIVE_INFINITY; }
+
+        mdbQuery.$and = [{ "year": { "$gte": Number(yearfrom) } },
+            { "year": { "$lte": Number(yearto) } }
+        ];
+        console.log(Date() + " - GET /motogpchamps from " + yearfrom + " to " + yearto);
+
+        if (rider != undefined) { mdbQuery.$and = mdbQuery.$and.concat([{ "rider": rider }]); }
+        if (year != undefined && !isNaN(year)) { mdbQuery.$and = mdbQuery.$and.concat([{ "year": year}]); }
+        if (constructor != undefined) { mdbQuery.$and = mdbQuery.$and.concat([{ "constructor": constructor}]); }
+        if (win != undefined && !isNaN(win)) { mdbQuery.$and = mdbQuery.$and.concat([{ "win": win }]); }
+        if (country != undefined) { mdbQuery.$and = mdbQuery.$and.concat([{ "country": country }]); }
+
+
+        console.log("Query => " + mdbQuery);
+
+        db.find(mdbQuery).skip(offset).limit(limit).toArray((err, rider) => {
+            console.log("Resultado => " + rider);
+            if (err) {
+                console.error("Error acceso DB");
+                res.sendStatus(500);
+                return;
             }
-        }, {
-            "year": {
-                "lte": Number(yearto)
+            if (rider.length == 0) {
+                res.sendStatus(404);
             }
-        }];
-        console.log(mongoquery);
-        /*if (CheckKey(keyprovided, res)) {*/
-            db.find(mongoquery).limit(limit).skip(offset).toArray((err, motogpchamps) => {
-                if (err) {
-                    console.error("Error accesing DB");
-                    res.sendStatus(500);
-                    return;
-                }
-                else if(motogpchamps.length==0){
-                    res.sendStatus(404); //Not Found
-                }else{
-                    res.send(motogpchamps.map((c) => {
-                    delete c._id;
-                    return c;
-                    }));
-                }
-            });
-        /*}*/
+            else {
+                res.send(rider.map((c) => { delete c._id; return c; }));
+            }
+        });
     });
     //POST a COLLECCIÓN:
     app.post(BASE_API_PATH + "/motogpchamps", (req, res) => {
@@ -108,7 +112,7 @@ motogpchampsApi.register = function(app, db, initialMotoGPChamps) {
             else {
                 if (!champ.year || !champ.rider || !champ.country || !champ.constructor || !champ.win) {
                     console.log("WARNING: Request not well-formed");
-                    res.sendStatus(422); //Unprocessable entity
+                    res.sendStatus(400); //Unprocessable entity
                 }
                 else {
                     db.find({
@@ -174,13 +178,13 @@ motogpchampsApi.register = function(app, db, initialMotoGPChamps) {
 
 
     //GET a RECURSO CONCRETO:
-    app.get(BASE_API_PATH + "/motogpchamps/:year", (req, res) => {
+    app.get(BASE_API_PATH + "/motogpchamps/:parameter", (req, res) => {
         var parameter = req.params.parameter;
         var year;
         var country;
         var limit = Number(req.query.limit);
         var offset = Number(req.query.offset);
-        var keyprovided = req.query.apikey;
+        //var keyprovided = req.query.apikey;
         var yearfrom = req.query.from;
         var yearto = req.query.to;
         var mongoquery = {}
@@ -225,7 +229,7 @@ motogpchampsApi.register = function(app, db, initialMotoGPChamps) {
                 }
                 else {
                     if (filteredChamps.length > 0) {
-                        res.send(filteredChamps);
+                        res.send(filteredChamps.map((c) => { delete c._id; return c; })[0]);
                     }
                     else {
                         console.log("WARNING: There are not any champ with " + year);
@@ -236,7 +240,7 @@ motogpchampsApi.register = function(app, db, initialMotoGPChamps) {
         /*}*/
     });
     //GET a un RECURSO CONCRETO 2 PARÁMETROS:
-    app.get(BASE_API_PATH + "/motogpchamps/:year/country", (req, res) => {
+    app.get(BASE_API_PATH + "/motogpchamps/:year/:country", (req, res) => {
         /*var keyprovided = req.query.apikey;
         if (CheckKey(keyprovided, res)) {*/
             var year = parseInt(req.params.year);
@@ -262,7 +266,7 @@ motogpchampsApi.register = function(app, db, initialMotoGPChamps) {
                     }
                     else{
                        if (champs.length > 0) {
-                            res.send(champs);
+                            res.send(champs.map((c) => { delete c._id; return c; })[0]);
                         }
                         else {
                             console.log("WARNING: There are not any champs with year" + year);
@@ -272,7 +276,6 @@ motogpchampsApi.register = function(app, db, initialMotoGPChamps) {
                 });
             }
         /*}*/
-
     });
 
 
@@ -280,7 +283,7 @@ motogpchampsApi.register = function(app, db, initialMotoGPChamps) {
     //DELETE a RECURSO CONCRETO:
     app.delete(BASE_API_PATH + "/motogpchamps/:year", (req, res) => {
         var year = parseInt(req.params.year);
-        var keyprovided = req.query.apikey;
+        //var keyprovided = req.query.apikey;
         console.log(Date() + " - DELETE /motogpchamps/" + year);
 
         /*if (CheckKey(keyprovided, res)) {*/
@@ -290,7 +293,7 @@ motogpchampsApi.register = function(app, db, initialMotoGPChamps) {
             }
             else {
                 db.remove({
-                    year: year
+                    "year": year
                 }, {}, (err, result) => {
                     var numRemoved = JSON.parse(result);
                     if (err) {
@@ -298,13 +301,13 @@ motogpchampsApi.register = function(app, db, initialMotoGPChamps) {
                         res.sendStatus(500); // internal server error
                     }
                     else {
-                        console.log("INFO: Beers removed: " + numRemoved.n);
+                        console.log("INFO: Champs removed: " + numRemoved.n);
                         if (numRemoved.n === 1) {
                             console.log("INFO: Champ deleted");
                             res.sendStatus(204); // no content
                         }
                         else {
-                            console.log("WARNING: There are no beer to delete");
+                            console.log("WARNING: There are no champs to delete");
                             res.sendStatus(404); // not found
                         }
                     }
@@ -323,10 +326,10 @@ motogpchampsApi.register = function(app, db, initialMotoGPChamps) {
     });
     //Hacer un PUT a RECURSO CONCRETO
     app.put(BASE_API_PATH + "/motogpchamps/:year/:country", (req, res) => {
-        var year = req.params.year;
+        var year = parseInt(req.params.year);
         var country = req.params.country;
         var updatedChamp = req.body;
-        var keyprovided = req.query.apikey;
+        //var keyprovided = req.query.apikey;
 
         console.log(Date() + " - PUT /motogpchamps/" + year);
 
