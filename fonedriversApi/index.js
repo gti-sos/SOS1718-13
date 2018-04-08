@@ -134,21 +134,27 @@ fonedriversApi.register = function(app, db, initialF_one_drivers) {
     });*/
 
     //POST a ruta base
+    var existe = false;
     app.post(BASE_API_PATH + "/f-one-drivers", (req, res) => {
         console.log(Date() + " - POST / f-one-drivers");
         var driver = req.body;
-        db.find({ "year": parseInt(driver.year) }).toArray((err, driver) => {
+
+        db.find({ "year": parseInt(driver.year) }).toArray((err, result) => {
             if (err) {
                 console.error("Error acceso DB");
                 res.sendStatus(500);
                 return;
             }
-            if(driver.length!=0){
-            res.sendStatus(409);return;}
-        })
+            console.log("EL TAMAÑO ES => " + result.length );
+            if(result.length>0)
+            {res.sendStatus(409);}
+        else{
+            console.log("VALOR DE EXISTE EN ELSE => " + existe);
         db.insert(driver);
         //f_one_drivers.push(driver);
         res.sendStatus(201); //Created
+        }
+        })
     });
 
     //POST a un recurso
