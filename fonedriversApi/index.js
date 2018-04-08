@@ -157,6 +157,7 @@ fonedriversApi.register = function(app, db, initialF_one_drivers) {
         driver.country=="" ||
         driver.country==undefined
         )
+        console.log("Driver para hacer POST => " + driver);
             camposOk = false;
         console.log(driver);
         db.find({ "year": parseInt(driver.year) }).toArray((err, result) => {
