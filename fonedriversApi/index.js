@@ -27,8 +27,8 @@ fonedriversApi.register = function(app, db, initialF_one_drivers) {
             }
             else {
                 console.log("DB already have " + f_one_drivers.length + " drivers");
+                            res.redirect(BASE_API_PATH + "/f-one-drivers");
             }
-            res.redirect(BASE_API_PATH + "/f-one-drivers");
         });
 
     });
