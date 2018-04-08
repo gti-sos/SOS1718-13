@@ -32,7 +32,7 @@ fonedriversApi.register = function(app, db, initialF_one_drivers) {
         });
 
     });
-   /* //GET a ruta base
+   /* //GET a ruta base SIN BUSQUEDA
     app.get(BASE_API_PATH + "/f-one-drivers", (req, res) => {
         console.log(Date() + " - GET / f-one-drivers");
 
@@ -53,11 +53,11 @@ fonedriversApi.register = function(app, db, initialF_one_drivers) {
     app.get(BASE_API_PATH + "/f-one-drivers", (req, res) => {
         //var year = req.params.year;
         var driver=req.query.driver;
-        var age=req.query.age;
+        var age=Number(req.query.age);
         var team=req.query.team;
         var engine=req.query.engine;
-        var win=req.query.win;
-        var point=req.query.point;
+        var win=Number(req.query.win);
+        var point=Number(req.query.point);
         var race=req.query.race;
         var country=req.query.country;
         
@@ -65,68 +65,40 @@ fonedriversApi.register = function(app, db, initialF_one_drivers) {
         var offset = Number(req.query.offset);
         var yearfrom = req.query.from;
         var yearto = req.query.to;
-        var query={};
-        console.log(Date() + " - GET / f-one-drivers from " + yearfrom + " to " + yearto);
-        if (driver != undefined && driver.length > 0 && /^[a-z\d\-_\s]+$/i.test(driver)) {
-            /*if (query == null) {
-                query = {
-                    "driver": driver
-                };
-            }
-            else {*/
-                query.$and = [{
-                    "driver": driver
-                }];
-            //}
-            console.log("Entra en driver => " + query);
-
-        }
-        if (country != undefined && country.length > 0 && /^[a-z\d\-_\s]+$/i.test(country)) {
-            if (query == null) {
-                query = {
-                    "country": country
-                };
-            }
-            else {
-                query.$and = [{
-                    "country": country
-                }];
-            }
-
-        }
+        var mdbQuery={};
         
-        if (yearfrom == undefined) {
-            yearfrom = 0;
-        }
-        if (yearto == undefined) {
-            yearto = Number.POSITIVE_INFINITY;
-        }
-        query.$and = [{
-            "year": {
-                "$gte": Number(yearfrom)
-            }
-        }, {
-            "year": {
-                "$lte": Number(yearto)
-            }
-        }];
-        console.log(query);
-        db.find(query).skip(offset).limit(limit).toArray((err, driver) => {
+        
+        if (yearfrom == undefined) {yearfrom = 0;}
+        if (yearto == undefined) {yearto = Number.POSITIVE_INFINITY;}
+        
+         mdbQuery.$and=[{"year": {"$gte": Number(yearfrom)}}, 
+         {"year": {"$lte": Number(yearto)}}];
+        console.log(Date() + " - GET / f-one-drivers from " + yearfrom + " to " + yearto);
+        
+        if (driver != undefined) {mdbQuery.$and= mdbQuery.$and.concat([{"driver": driver}]);}
+        if (age != undefined && !isNaN(age)) {mdbQuery.$and= mdbQuery.$and.concat([{"age": age}]);}
+        if (team != undefined) {mdbQuery.$and= mdbQuery.$and.concat([{"team": team}]);}
+        if (engine != undefined) {mdbQuery.$and= mdbQuery.$and.concat([{"engine": engine}]);}
+        if (win != undefined && !isNaN(win)) {mdbQuery.$and= mdbQuery.$and.concat([{"win": win}]);}
+        if (point != undefined && !isNaN(point)) {mdbQuery.$and= mdbQuery.$and.concat([{"point": point}]);}
+        if (race != undefined) {mdbQuery.$and= mdbQuery.$and.concat([{"race": race}]);}
+        if (country != undefined) {mdbQuery.$and= mdbQuery.$and.concat([{"country": country}]);}
+        
+        
+        console.log("Query => " + mdbQuery);
+        
+        db.find(mdbQuery).skip(offset).limit(limit).toArray((err, driver) => {
+            console.log("Resultado => " + driver);
             if (err) {
                 console.error("Error acceso DB");
                 res.sendStatus(500);
                 return;
             }
-            if(driver.length==0)
-            res.sendStatus(404);
-            else
-            res.send(driver.map((c) => { delete c._id; return c; }));
+            if(driver.length==0){
+            res.sendStatus(404);}
+            else{
+            res.send(driver.map((c) => { delete c._id; return c; }));}
         });
-
-        /*res.send(f_one_drivers.filter((c)=>{
-            return (c.year==year);
-            
-        })[0]);*/
     });
     
     //GET a un recurso
@@ -140,10 +112,10 @@ fonedriversApi.register = function(app, db, initialF_one_drivers) {
                 res.sendStatus(500);
                 return;
             }
-            if(driver.length==0)
-            res.sendStatus(404);
-            
-            res.send(driver.map((c) => { delete c._id; return c; }));
+            if(driver.length==0){
+            res.sendStatus(404);}
+            else{
+            res.send(driver.map((c) => { delete c._id; return c; }));}
         });
 
         /*res.send(f_one_drivers.filter((c)=>{
