@@ -162,7 +162,7 @@ gpistatsApi.register = function(app, db, initialGpiStats) {
 
         db.find({ "country": country }).toArray((err, stats) => {
             if (err) {
-                console.log("Error al acceder a la base de datos mongo");
+                console.log("Error accesing mongo DB");
                 res.sendStatus(500);
                 return;
             }
