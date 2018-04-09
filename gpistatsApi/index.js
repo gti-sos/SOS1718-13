@@ -33,53 +33,203 @@ gpistatsApi.register = function(app, db, initialGpiStats) {
     
     //////////////////////////////////////      API REST:         //////////////////////
     
-    //////GET & PAGINACION ///////
-    
-     app.get(BASE_API_PATH+"/gpi-stats", (req, res) => {
-        var limit = Number(req.query.limit);
-        var offset = Number(req.query.offset);
-        if (limit > 0 & offset > 0) {
-            MongoClient.connect(urlDb, function(err, db) {
-                if (err) throw err;
-                var dbo = db.db("sos1718-13-gpistats");
-                if (err) throw err;
-                dbo.collection("gpi-stats").find({}).skip(offset).limit(limit).toArray(function(err, result) {
-                    if (!err && !result.length) {
-                        console.log("Not found");
-                        res.sendStatus(404);
+    ////GET TO ALL RESOURCES ////
+    app.get(BASE_API_PATH + "/gpi-stats", (req, res) => {
+        console.log(Date() + " - GET /gpi-stats");
+        var limit = parseInt(req.query.limit);
+        var offset = parseInt(req.query.offset);
+
+        ////SEARCH////
+        var afrom = Number(req.query.from);
+        var ato = Number(req.query.to);
+        var country = req.query.country;
+        var year = Number(req.query.year);
+        var query = "";
+
+        if (afrom && ato && country) {
+            db.find({ "year": { "$gte": afrom, "$lte": ato }, "country": country }).skip(offset).limit(limit).toArray((err, results) => {
+                if (err) {
+                    console.error("Error accesing DB");
+                    res.sendStatus(500);
+                    return;
+                }
+                if (results.length == 0) {
+                    console.log("Empty DB")
+                    res.sendStatus(404);
+                    return;
+                }
+                res.send(results.map((c) => {
+                    delete c._id;
+                    return c;
+                }));
+            });
+
+        }
+                else {
+
+                    if (country) {
+                        db.find({ "country": country}).skip(offset).limit(limit).toArray((err, results) => {
+                            if (err) {
+                                console.error("Error accesing DB");
+                                res.sendStatus(500);
+                                return;
+                            }
+                            if (results.length == 0) {
+                                console.log("Empty DB")
+                                res.sendStatus(404);
+                                return;
+                            }
+                            res.send(results.map((c) => {
+                                delete c._id;
+                                return c;
+                            }));
+                        });
+
                     }
                     else {
-                        res.send(result.map((c) => {
-                            delete c._id;
-                            return c;
-                        }));
-                    }
-                    db.close();
-                });
-            });
-        }
-        else {
-            MongoClient.connect(urlDb, function(err, db) {
-                if (err) throw err;
-                var dbo = db.db("sos1718-13-gpistats");
-                if (err) throw err;
-                dbo.collection("gpi-stats").find({}).toArray(function(err, result) {
-                    if (!err && !result.length) {
-                        console.log("Not found");
-                        res.sendStatus(404);
-                    }
-                    else {
-                        res.send(result.map((c) => {
-                            delete c._id;
-                            return c;
-                        }));
-                    }
-                    console.log(Date() + " - GET /gpi-stats")
-                    db.close();
-                });
-            });
-        }
+
+
+                        if (afrom && ato) {
+
+                            db.find({ "year": { "$gte": afrom, "$lte": ato } }).skip(offset).limit(limit).toArray((err, results) => {
+                                if (err) {
+                                    console.error("Error accesing DB");
+                                    res.sendStatus(500);
+                                    return;
+                                }
+                                if (results.length == 0) {
+                                    console.log("Empty DB")
+                                    res.sendStatus(404);
+                                    return;
+                                }
+                                res.send(results.map((c) => {
+                                    delete c._id;
+                                    return c;
+                                }));
+                            });
+                        }
+                                else{
+                                    if (year) {
+                                    db.find({ "year": year }).skip(offset).limit(limit).toArray((err, results) => {
+                                        if (err) {
+                                            console.error("Error accesing DB");
+                                            res.sendStatus(500);
+                                            return;
+                                        }
+                                        if (results.length == 0) {
+                                            console.log("Empty DB")
+                                            res.sendStatus(404);
+                                            return;
+                                        }
+                                        res.send(results.map((c) => {
+                                            delete c._id;
+                                            return c;
+                                        }));
+                                    });
+
+                                }
+                                else{
+                    
+                                    db.find({}).skip(offset).limit(limit).toArray((err, results) => {
+                                        if (err) {
+                                            console.error("Error accesing DB");
+                                            res.sendStatus(500);
+                                            return;
+                                        }
+                                        if (results.length == 0) {
+                                            console.log("Empty DB")
+                                            res.sendStatus(404);
+                                            return;
+                                        }
+                                        res.send(results.map((c) => {
+                                            delete c._id;
+                                            return c;
+                                        }));
+                                    });
+                                
+                                    }
+                                }
+                                
+                            }
+                        }
+                    });
+
+
+    //GET A UN SUBCONJUNTO DE RECURSOS
+    app.get(BASE_API_PATH + "/crimes-an/:province", (req, res) => {
+        var province = req.params.province;
+        console.log(Date() + " - GET /crimes-an/" + province);
+
+        db.find({ "province": province }).toArray((err, crimes) => {
+            if (err) {
+                console.log("Error al acceder a la base de datos mongo");
+                res.sendStatus(500);
+                return;
+            }
+            if (crimes.length == 0){
+                console.log("Not found");
+                res.sendStatus(404);
+                return;
+            }
+            
+            res.send(crimes.map((c) => {
+                delete c._id;
+                return c;
+            }));
+        });
     });
+
+    //GET A UN SUBCONJUNTO DE RECURSOS
+     app.get(BASE_API_PATH + "/crimes-an/:province/:year", (req, res) => {
+        var province = req.params.province;
+        var year = Number(req.params.year);
+        console.log(Date() + " - GET /crimes-an/" + province + "/" + year);
+
+        db.find({ "province": province, "year": year }).toArray((err, crimes) => {
+            if (err) {
+                console.log("Error al acceder a la base de datos mongo");
+                res.sendStatus(500);
+                return;
+            }
+             if (crimes.length == 0){
+                console.log("Not found");
+                res.sendStatus(404);
+                return;
+            }
+            
+            res.send(crimes.map((c) => {
+                delete c._id;
+                return c;
+            }));
+        });
+    });
+    
+    //GET A UN RECURSO CONCRETO
+    app.get(BASE_API_PATH + "/crimes-an/:province/:year/:gender", (req, res) => {
+        var province = req.params.province;
+        var year = Number(req.params.year);
+        var gender = req.params.gender;
+        console.log(Date() + " - GET /crimes-an/" + province + "/" + year + "/" + gender);
+
+        db.find({ "province": province, "year": year, "gender": gender }).toArray((err, crimes) => {
+            if (err) {
+                console.log("Error al acceder a la base de datos mongo");
+                res.sendStatus(500);
+                return;
+            }
+            if (crimes.length == 0){
+                console.log("Not found");
+                res.sendStatus(404);
+                return;
+            }
+            
+            res.send(crimes.map((c) => {
+                delete c._id;
+                return c;
+            })[0]);
+        });
+    });
+    
     
 ////// ENABLED POST //////
     app.post(BASE_API_PATH + "/gpi-stats", (req, res) => {
