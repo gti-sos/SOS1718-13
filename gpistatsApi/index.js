@@ -455,7 +455,7 @@ gpistatsApi.register = function(app, db, initialGpiStats) {
     
     app.get(BASE_API_PATH + "/secure/gpi-stats", (req, res) => {
         
-        var sourceapikey= req.headers.apikey;
+        var sourceapikey= req.query.apikey;
         if (sourceapikey == apikey) {
             MongoClient.connect(urlDb, function(err, db) {
                 if (err) throw err;
