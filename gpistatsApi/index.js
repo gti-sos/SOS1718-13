@@ -155,80 +155,55 @@ gpistatsApi.register = function(app, db, initialGpiStats) {
                     });
 
 
-    //GET A UN SUBCONJUNTO DE RECURSOS
-    app.get(BASE_API_PATH + "/crimes-an/:province", (req, res) => {
-        var province = req.params.province;
-        console.log(Date() + " - GET /crimes-an/" + province);
+    //GET TO SUBGROUP
+    app.get(BASE_API_PATH + "/gpi-stats/:country", (req, res) => {
+        var country = req.params.country;
+        console.log(Date() + " - GET /gpi-stats/" + country);
 
-        db.find({ "province": province }).toArray((err, crimes) => {
+        db.find({ "country": country }).toArray((err, stats) => {
             if (err) {
                 console.log("Error al acceder a la base de datos mongo");
                 res.sendStatus(500);
                 return;
             }
-            if (crimes.length == 0){
+            if (stats.length == 0){
                 console.log("Not found");
                 res.sendStatus(404);
                 return;
             }
             
-            res.send(crimes.map((c) => {
+            res.send(stats.map((c) => {
                 delete c._id;
                 return c;
             }));
         });
     });
 
-    //GET A UN SUBCONJUNTO DE RECURSOS
-     app.get(BASE_API_PATH + "/crimes-an/:province/:year", (req, res) => {
-        var province = req.params.province;
+    //GET TO SUBGROUP
+     app.get(BASE_API_PATH + "/gpi-stats/:country/:year", (req, res) => {
+        var country = req.params.country;
         var year = Number(req.params.year);
-        console.log(Date() + " - GET /crimes-an/" + province + "/" + year);
+        console.log(Date() + " - GET /gpi-stats/" + country + "/" + year);
 
-        db.find({ "province": province, "year": year }).toArray((err, crimes) => {
+        db.find({ "country": country, "year": year }).toArray((err, stats) => {
             if (err) {
-                console.log("Error al acceder a la base de datos mongo");
+                console.log("Error accessing mongoDB");
                 res.sendStatus(500);
                 return;
             }
-             if (crimes.length == 0){
+             if (stats.length == 0){
                 console.log("Not found");
                 res.sendStatus(404);
                 return;
             }
             
-            res.send(crimes.map((c) => {
+            res.send(stats.map((c) => {
                 delete c._id;
                 return c;
             }));
         });
     });
     
-    //GET A UN RECURSO CONCRETO
-    app.get(BASE_API_PATH + "/crimes-an/:province/:year/:gender", (req, res) => {
-        var province = req.params.province;
-        var year = Number(req.params.year);
-        var gender = req.params.gender;
-        console.log(Date() + " - GET /crimes-an/" + province + "/" + year + "/" + gender);
-
-        db.find({ "province": province, "year": year, "gender": gender }).toArray((err, crimes) => {
-            if (err) {
-                console.log("Error al acceder a la base de datos mongo");
-                res.sendStatus(500);
-                return;
-            }
-            if (crimes.length == 0){
-                console.log("Not found");
-                res.sendStatus(404);
-                return;
-            }
-            
-            res.send(crimes.map((c) => {
-                delete c._id;
-                return c;
-            })[0]);
-        });
-    });
     
     
 ////// ENABLED POST //////
